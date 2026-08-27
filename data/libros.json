@@ -1,0 +1,92 @@
+[
+  {
+    "id_libro": 1,
+    "titulo": "Cien años de soledad",
+    "autor": "Gabriel García Márquez",
+    "id_genero": 1,
+    "precio": 28500,
+    "stock": 8,
+    "disponible": true
+  },
+  {
+    "id_libro": 2,
+    "titulo": "Rayuela",
+    "autor": "Julio Cortázar",
+    "id_genero": 1,
+    "precio": 24000,
+    "stock": 5,
+    "disponible": true
+  },
+  {
+    "id_libro": 3,
+    "titulo": "El Aleph",
+    "autor": "Jorge Luis Borges",
+    "id_genero": 2,
+    "precio": 22000,
+    "stock": 4,
+    "disponible": true
+  },
+  {
+    "id_libro": 4,
+    "titulo": "La casa de los espíritus",
+    "autor": "Isabel Allende",
+    "id_genero": 1,
+    "precio": 26500,
+    "stock": 6,
+    "disponible": true
+  },
+  {
+    "id_libro": 5,
+    "titulo": "El principito",
+    "autor": "Antoine de Saint-Exupéry",
+    "id_genero": 3,
+    "precio": 18000,
+    "stock": 10,
+    "disponible": true
+  },
+  {
+    "id_libro": 6,
+    "titulo": "1984",
+    "autor": "George Orwell",
+    "id_genero": 4,
+    "precio": 21500,
+    "stock": 7,
+    "disponible": true
+  },
+  {
+    "id_libro": 7,
+    "titulo": "Orgullo y prejuicio",
+    "autor": "Jane Austen",
+    "id_genero": 1,
+    "precio": 23000,
+    "stock": 3,
+    "disponible": true
+  },
+  {
+    "id_libro": 8,
+    "titulo": "Crónica de una muerte anunciada",
+    "autor": "Gabriel García Márquez",
+    "id_genero": 1,
+    "precio": 19500,
+    "stock": 5,
+    "disponible": true
+  },
+  {
+    "id_libro": 9,
+    "titulo": "Ficciones",
+    "autor": "Jorge Luis Borges",
+    "id_genero": 2,
+    "precio": 22500,
+    "stock": 2,
+    "disponible": true
+  },
+  {
+    "id_libro": 10,
+    "titulo": "La tregua",
+    "autor": "Mario Benedetti",
+    "id_genero": 1,
+    "precio": 20000,
+    "stock": 0,
+    "disponible": false
+  }
+]

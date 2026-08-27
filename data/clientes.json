@@ -1,0 +1,42 @@
+[
+  {
+    "id_cliente": 1,
+    "nombre": "Laura",
+    "apellido": "Gómez",
+    "email": "laura.gomez@gmail.com",
+    "telefono": "3514567890",
+    "activo": true
+  },
+  {
+    "id_cliente": 2,
+    "nombre": "Martín",
+    "apellido": "López",
+    "email": "martin.lopez@gmail.com",
+    "telefono": "3515678901",
+    "activo": true
+  },
+  {
+    "id_cliente": 3,
+    "nombre": "Sofía",
+    "apellido": "Martínez",
+    "email": "sofia.martinez@gmail.com",
+    "telefono": "3516789012",
+    "activo": true
+  },
+  {
+    "id_cliente": 4,
+    "nombre": "Pablo",
+    "apellido": "Rodríguez",
+    "email": "pablo.rodriguez@gmail.com",
+    "telefono": "3517890123",
+    "activo": false
+  },
+  {
+    "id_cliente": 5,
+    "nombre": "Valentina",
+    "apellido": "Fernández",
+    "email": "valentina.fernandez@gmail.com",
+    "telefono": "3518901234",
+    "activo": true
+  }
+]

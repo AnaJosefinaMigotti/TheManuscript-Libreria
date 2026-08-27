@@ -1,0 +1,22 @@
+[
+  {
+    "id_genero": 1,
+    "nombre": "Novela",
+    "activo": true
+  },
+  {
+    "id_genero": 2,
+    "nombre": "Cuentos",
+    "activo": true
+  },
+  {
+    "id_genero": 3,
+    "nombre": "Literatura infantil",
+    "activo": true
+  },
+  {
+    "id_genero": 4,
+    "nombre": "Distopía",
+    "activo": true
+  }
+]
