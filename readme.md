@@ -1,7 +1,9 @@
 # The Manuscript Librería
 
 **Materia:** Aplicaciones Web II
+
 **Estudiante:** Migotti, Ana Josefina
+
 **N° de Documento:** 43.132.432
 
 ## Descripción del proyecto
