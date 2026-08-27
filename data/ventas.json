@@ -1,0 +1,134 @@
+[
+  {
+    "id_venta": 1,
+    "id_cliente": 3,
+    "fecha": "2026-08-02",
+    "total": 28500,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 1,
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "id_venta": 2,
+    "id_cliente": 1,
+    "fecha": "2026-08-05",
+    "total": 41000,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 6,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 8,
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "id_venta": 3,
+    "id_cliente": 5,
+    "fecha": "2026-08-09",
+    "total": 76000,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 6,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 4,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 1,
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "id_venta": 4,
+    "id_cliente": 2,
+    "fecha": "2026-08-12",
+    "total": 22000,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 3,
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "id_venta": 5,
+    "id_cliente": 3,
+    "fecha": "2026-08-16",
+    "total": 65000,
+    "pagada": false,
+    "libros": [
+      {
+        "id_libro": 2,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 5,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 7,
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "id_venta": 6,
+    "id_cliente": 4,
+    "fecha": "2026-08-19",
+    "total": 45000,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 9,
+        "cantidad": 2
+      }
+    ]
+  },
+  {
+    "id_venta": 7,
+    "id_cliente": 1,
+    "fecha": "2026-08-23",
+    "total": 46000,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 7,
+        "cantidad": 2
+      }
+    ]
+  },
+  {
+    "id_venta": 8,
+    "id_cliente": 5,
+    "fecha": "2026-08-26",
+    "total": 70500,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 3,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 1,
+        "cantidad": 1
+      },
+      {
+        "id_libro": 10,
+        "cantidad": 1
+      }
+    ]
+  }
+]
