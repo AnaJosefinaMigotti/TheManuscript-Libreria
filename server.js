@@ -1,38 +1,32 @@
-const express = require("express");
+var express = require("express");
 
-const clientesRoutes = require("./routes/clientes.routes");
-const librosRoutes = require("./routes/libros.routes");
-const generosRoutes = require("./routes/genero.routes");
-const ventasRoutes = require("./routes/ventas.routes");
+var clientesRoutes = require("./routes/clientes.routes");
+var librosRoutes = require("./routes/libros.routes");
+var generosRoutes = require("./routes/generos.routes");
+var ventasRoutes = require("./routes/ventas.routes");
 
-const app = express();
-const PORT = 3000;
+var app = express();
+var PORT = 3000;
 
-// permite recibir datos en formato JSON
 app.use(express.json());
 
-// Ruta principal
-app.get("/", (req, res) => {
+app.get("/", function(req, res) {
   res.json({
-    proyecto: "The Manuscript",
-    mensaje: "la api ta, funciona"
+    Proyecto: "The Manuscript - Librería",
   });
 });
 
-// Rutas de la API
 app.use("/clientes", clientesRoutes);
 app.use("/libros", librosRoutes);
 app.use("/generos", generosRoutes);
 app.use("/ventas", ventasRoutes);
 
-// Ruta no encontrada
-app.use((req, res) => {
+app.use(function(req, res) {
   res.status(404).json({
     mensaje: "Ruta no encontrada"
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+app.listen(PORT, function() {
+  console.log("Servidor ejecutándose en http://localhost:" + PORT);
 });

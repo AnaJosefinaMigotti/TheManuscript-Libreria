@@ -1,20 +1,25 @@
-const express = require("express");
-const router = express.Router();
+var express = require("express");
+var router = express.Router();
 
-const { leerJson, guardarJson, siguienteId } = require("../utils/jsonDb");
+var jsonDb = require("../utils/jsonDb");
+var leerJson = jsonDb.leerJson;
+var guardarJson = jsonDb.guardarJson;
+var siguienteId = jsonDb.siguienteId;
 
 // Traer todos los libros
-router.get("/", (req, res) => {
-  const libros = leerJson("libros.json");
+router.get("/", function(req, res) {
+  var libros = leerJson("libros.json");
   res.json(libros);
 });
 
 // Buscar un libro por ID
-router.get("/:id", (req, res) => {
-  const libros = leerJson("libros.json");
-  const id = Number(req.params.id);
+router.get("/:id", function(req, res) {
+  var libros = leerJson("libros.json");
+  var id = Number(req.params.id);
 
-  const libro = libros.find(libro => libro.id_libro === id);
+  var libro = libros.find(function(libro) {
+    return libro.id_libro === id;
+  });
 
   if (!libro) {
     return res.status(404).json({
@@ -26,8 +31,12 @@ router.get("/:id", (req, res) => {
 });
 
 // Crear un nuevo libro
-router.post("/", (req, res) => {
-  const { titulo, autor, id_genero, precio, stock } = req.body;
+router.post("/", function(req, res) {
+  var titulo = req.body.titulo;
+  var autor = req.body.autor;
+  var id_genero = req.body.id_genero;
+  var precio = req.body.precio;
+  var stock = req.body.stock;
 
   if (
     !titulo ||
@@ -41,11 +50,11 @@ router.post("/", (req, res) => {
     });
   }
 
-  const generos = leerJson("genero.json");
+  var generos = leerJson("generos.json");
 
-  const generoExiste = generos.some(
-    genero => genero.id_genero === Number(id_genero)
-  );
+  var generoExiste = generos.some(function(genero) {
+    return genero.id_genero === Number(id_genero);
+  });
 
   if (!generoExiste) {
     return res.status(400).json({
@@ -59,9 +68,9 @@ router.post("/", (req, res) => {
     });
   }
 
-  const libros = leerJson("libros.json");
+  var libros = leerJson("libros.json");
 
-  const nuevoLibro = {
+  var nuevoLibro = {
     id_libro: siguienteId(libros, "id_libro"),
     titulo: titulo,
     autor: autor,
@@ -72,20 +81,20 @@ router.post("/", (req, res) => {
   };
 
   libros.push(nuevoLibro);
-
   guardarJson("libros.json", libros);
 
   res.status(201).json(nuevoLibro);
 });
 
 // Modificar un libro
-router.put("/:id", (req, res) => {
-  const libros = leerJson("libros.json");
-  const generos = leerJson("genero.json");
+router.put("/:id", function(req, res) {
+  var libros = leerJson("libros.json");
+  var generos = leerJson("generos.json");
+  var id = Number(req.params.id);
 
-  const id = Number(req.params.id);
-
-  const indice = libros.findIndex(libro => libro.id_libro === id);
+  var indice = libros.findIndex(function(libro) {
+    return libro.id_libro === id;
+  });
 
   if (indice === -1) {
     return res.status(404).json({
@@ -93,12 +102,16 @@ router.put("/:id", (req, res) => {
     });
   }
 
-  const { titulo, autor, id_genero, precio, stock } = req.body;
+  var titulo = req.body.titulo;
+  var autor = req.body.autor;
+  var id_genero = req.body.id_genero;
+  var precio = req.body.precio;
+  var stock = req.body.stock;
 
   if (id_genero !== undefined) {
-    const generoExiste = generos.some(
-      genero => genero.id_genero === Number(id_genero)
-    );
+    var generoExiste = generos.some(function(genero) {
+      return genero.id_genero === Number(id_genero);
+    });
 
     if (!generoExiste) {
       return res.status(400).json({
@@ -146,13 +159,14 @@ router.put("/:id", (req, res) => {
 });
 
 // Eliminar un libro
-router.delete("/:id", (req, res) => {
-  const libros = leerJson("libros.json");
-  const ventas = leerJson("ventas.json");
+router.delete("/:id", function(req, res) {
+  var libros = leerJson("libros.json");
+  var ventas = leerJson("ventas.json");
+  var id = Number(req.params.id);
 
-  const id = Number(req.params.id);
-
-  const indice = libros.findIndex(libro => libro.id_libro === id);
+  var indice = libros.findIndex(function(libro) {
+    return libro.id_libro === id;
+  });
 
   if (indice === -1) {
     return res.status(404).json({
@@ -160,9 +174,11 @@ router.delete("/:id", (req, res) => {
     });
   }
 
-  const apareceEnVentas = ventas.some(venta =>
-    venta.libros.some(detalle => detalle.id_libro === id)
-  );
+  var apareceEnVentas = ventas.some(function(venta) {
+    return venta.libros.some(function(detalle) {
+      return detalle.id_libro === id;
+    });
+  });
 
   if (apareceEnVentas) {
     return res.status(409).json({
@@ -170,7 +186,7 @@ router.delete("/:id", (req, res) => {
     });
   }
 
-  const libroEliminado = libros.splice(indice, 1)[0];
+  var libroEliminado = libros.splice(indice, 1)[0];
 
   guardarJson("libros.json", libros);
 

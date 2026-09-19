@@ -1,24 +1,36 @@
-//lee, guarda y genera los ID de los archivos json
+var fs = require("fs");
+var path = require("path");
 
-const fs = require("fs");
-const path = require("path");
-
-const rutaData = path.join(__dirname, "../data");
+function obtenerRuta(nombreArchivo) {
+  return path.join(__dirname, "..", "data", nombreArchivo);
+}
 
 function leerJson(nombreArchivo) {
-  const rutaArchivo = path.join(rutaData, nombreArchivo);
-  const contenido = fs.readFileSync(rutaArchivo, "utf-8");
+  var ruta = obtenerRuta(nombreArchivo);
+  var contenido = fs.readFileSync(ruta, "utf-8");
   return JSON.parse(contenido);
 }
 
 function guardarJson(nombreArchivo, datos) {
-  const ruta = obtenerRuta(nombreArchivo);
+  var ruta = obtenerRuta(nombreArchivo);
   fs.writeFileSync(ruta, JSON.stringify(datos, null, 2), "utf-8");
 }
 
 function siguienteId(datos, campoId) {
-  if (datos.length === 0) return 1;
-  return Math.max(...datos.map(item => item[campoId])) + 1;
+  var mayorId = 0;
+  var i;
+
+  for (i = 0; i < datos.length; i++) {
+    if (datos[i][campoId] > mayorId) {
+      mayorId = datos[i][campoId];
+    }
+  }
+
+  return mayorId + 1;
 }
 
-module.exports = { leerJson, guardarJson, siguienteId };
+module.exports = {
+  leerJson: leerJson,
+  guardarJson: guardarJson,
+  siguienteId: siguienteId
+};

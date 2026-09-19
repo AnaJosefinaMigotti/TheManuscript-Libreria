@@ -1,20 +1,25 @@
-const express = require("express");
-const router = express.Router();
+var express = require("express");
+var router = express.Router();
 
-const { leerJson, guardarJson, siguienteId } = require("../utils/jsonDb");
+var jsonDb = require("../utils/jsonDb");
+var leerJson = jsonDb.leerJson;
+var guardarJson = jsonDb.guardarJson;
+var siguienteId = jsonDb.siguienteId;
 
 // Traer todas las ventas
-router.get("/", (req, res) => {
-  const ventas = leerJson("ventas.json");
+router.get("/", function(req, res) {
+  var ventas = leerJson("ventas.json");
   res.json(ventas);
 });
 
 // Buscar una venta por ID
-router.get("/:id", (req, res) => {
-  const ventas = leerJson("ventas.json");
-  const id = Number(req.params.id);
+router.get("/:id", function(req, res) {
+  var ventas = leerJson("ventas.json");
+  var id = Number(req.params.id);
 
-  const venta = ventas.find(venta => venta.id_venta === id);
+  var venta = ventas.find(function(venta) {
+    return venta.id_venta === id;
+  });
 
   if (!venta) {
     return res.status(404).json({
@@ -26,8 +31,15 @@ router.get("/:id", (req, res) => {
 });
 
 // Registrar una nueva venta
-router.post("/", (req, res) => {
-  const { id_cliente, fecha, pagada = false, libros: detalleLibros } = req.body;
+router.post("/", function(req, res) {
+  var id_cliente = req.body.id_cliente;
+  var fecha = req.body.fecha;
+  var pagada = req.body.pagada;
+  var detalleLibros = req.body.libros;
+
+  if (pagada === undefined) {
+    pagada = false;
+  }
 
   if (
     id_cliente === undefined ||
@@ -40,14 +52,14 @@ router.post("/", (req, res) => {
     });
   }
 
-  const clientes = leerJson("clientes.json");
-  const libros = leerJson("libros.json");
-  const ventas = leerJson("ventas.json");
+  var clientes = leerJson("clientes.json");
+  var libros = leerJson("libros.json");
+  var ventas = leerJson("ventas.json");
 
   // Verificar que el cliente exista
-  const cliente = clientes.find(
-    cliente => cliente.id_cliente === Number(id_cliente)
-  );
+  var cliente = clientes.find(function(cliente) {
+    return cliente.id_cliente === Number(id_cliente);
+  });
 
   if (!cliente) {
     return res.status(400).json({
@@ -62,19 +74,25 @@ router.post("/", (req, res) => {
     });
   }
 
-  let total = 0;
+  var total = 0;
+  var i;
+  var item;
+  var libro;
+  var cantidad;
 
   // Verificar libros, cantidades y stock
-  for (const item of detalleLibros) {
-    const libro = libros.find(
-      libro => libro.id_libro === Number(item.id_libro)
-    );
+  for (i = 0; i < detalleLibros.length; i++) {
+    item = detalleLibros[i];
 
-    const cantidad = Number(item.cantidad);
+    libro = libros.find(function(libro) {
+      return libro.id_libro === Number(item.id_libro);
+    });
+
+    cantidad = Number(item.cantidad);
 
     if (!libro) {
       return res.status(400).json({
-        mensaje: `El libro con id ${item.id_libro} no existe`
+        mensaje: "El libro con id " + item.id_libro + " no existe"
       });
     }
 
@@ -86,7 +104,7 @@ router.post("/", (req, res) => {
 
     if (libro.stock < cantidad) {
       return res.status(400).json({
-        mensaje: `Stock insuficiente para el libro: ${libro.titulo}`
+        mensaje: "Stock insuficiente para el libro: " + libro.titulo
       });
     }
 
@@ -94,16 +112,18 @@ router.post("/", (req, res) => {
   }
 
   // Descontar del stock los libros vendidos
-  for (const item of detalleLibros) {
-    const libro = libros.find(
-      libro => libro.id_libro === Number(item.id_libro)
-    );
+  for (i = 0; i < detalleLibros.length; i++) {
+    item = detalleLibros[i];
+
+    libro = libros.find(function(libro) {
+      return libro.id_libro === Number(item.id_libro);
+    });
 
     libro.stock = libro.stock - Number(item.cantidad);
     libro.disponible = libro.stock > 0;
   }
 
-  const nuevaVenta = {
+  var nuevaVenta = {
     id_venta: siguienteId(ventas, "id_venta"),
     id_cliente: Number(id_cliente),
     fecha: fecha,
@@ -113,7 +133,9 @@ router.post("/", (req, res) => {
   };
 
   // Guardar el detalle de los libros de la venta
-  for (const item of detalleLibros) {
+  for (i = 0; i < detalleLibros.length; i++) {
+    item = detalleLibros[i];
+
     nuevaVenta.libros.push({
       id_libro: Number(item.id_libro),
       cantidad: Number(item.cantidad)
@@ -129,11 +151,13 @@ router.post("/", (req, res) => {
 });
 
 // Modificar el estado de pago de una venta
-router.put("/:id", (req, res) => {
-  const ventas = leerJson("ventas.json");
-  const id = Number(req.params.id);
+router.put("/:id", function(req, res) {
+  var ventas = leerJson("ventas.json");
+  var id = Number(req.params.id);
 
-  const indice = ventas.findIndex(venta => venta.id_venta === id);
+  var indice = ventas.findIndex(function(venta) {
+    return venta.id_venta === id;
+  });
 
   if (indice === -1) {
     return res.status(404).json({
@@ -141,7 +165,7 @@ router.put("/:id", (req, res) => {
     });
   }
 
-  const { pagada } = req.body;
+  var pagada = req.body.pagada;
 
   if (pagada === undefined) {
     return res.status(400).json({
@@ -157,13 +181,14 @@ router.put("/:id", (req, res) => {
 });
 
 // Eliminar una venta
-router.delete("/:id", (req, res) => {
-  const ventas = leerJson("ventas.json");
-  const libros = leerJson("libros.json");
+router.delete("/:id", function(req, res) {
+  var ventas = leerJson("ventas.json");
+  var libros = leerJson("libros.json");
+  var id = Number(req.params.id);
 
-  const id = Number(req.params.id);
-
-  const indice = ventas.findIndex(venta => venta.id_venta === id);
+  var indice = ventas.findIndex(function(venta) {
+    return venta.id_venta === id;
+  });
 
   if (indice === -1) {
     return res.status(404).json({
@@ -171,13 +196,18 @@ router.delete("/:id", (req, res) => {
     });
   }
 
-  const ventaEliminada = ventas[indice];
+  var ventaEliminada = ventas[indice];
+  var i;
+  var item;
+  var libro;
 
   // Devolver al stock los libros de la venta eliminada
-  for (const item of ventaEliminada.libros) {
-    const libro = libros.find(
-      libro => libro.id_libro === item.id_libro
-    );
+  for (i = 0; i < ventaEliminada.libros.length; i++) {
+    item = ventaEliminada.libros[i];
+
+    libro = libros.find(function(libro) {
+      return libro.id_libro === item.id_libro;
+    });
 
     if (libro) {
       libro.stock = libro.stock + item.cantidad;
