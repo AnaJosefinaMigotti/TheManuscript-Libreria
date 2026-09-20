@@ -1,129 +1,160 @@
-var express = require("express");
-var router = express.Router();
+import express from "express";
+import fs from "fs/promises";
 
-var jsonDb = require("../utils/jsonDb");
-var leerJson = jsonDb.leerJson;
-var guardarJson = jsonDb.guardarJson;
-var siguienteId = jsonDb.siguienteId;
+const router = express.Router();
+const archivoGeneros = "./data/generos.json";
+const archivoLibros = "./data/libros.json";
+
+// leer géneros
+const leerGeneros = async () => {
+  const data = await fs.readFile(archivoGeneros, "utf-8");
+  return JSON.parse(data);
+};
+
+// guardar géneros
+const guardarGeneros = async (generos) => {
+  await fs.writeFile(
+    archivoGeneros,
+    JSON.stringify(generos, null, 2)
+  );
+};
+
+// leer libros
+const leerLibros = async () => {
+  const data = await fs.readFile(archivoLibros, "utf-8");
+  return JSON.parse(data);
+};
 
 // traer todos los géneros
-router.get("/", function(req, res) {
-  var generos = leerJson("generos.json");
-  res.json(generos);
+router.get("/", async (req, res) => {
+  try {
+    const generos = await leerGeneros();
+    res.json(generos);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al leer los géneros"
+    });
+  }
 });
 
 // buscar un género por ID
-router.get("/:id", function(req, res) {
-  var generos = leerJson("generos.json");
-  var id = Number(req.params.id);
+router.get("/:id", async (req, res) => {
+  try {
+    const generos = await leerGeneros();
+    const id = parseInt(req.params.id);
 
-  var genero = generos.find(function(genero) {
-    return genero.id_genero === id;
-  });
+    const genero = generos.find(
+      genero => genero.id_genero === id
+    );
 
-  if (!genero) {
-    return res.status(404).json({
-      mensaje: "Género no encontrado"
+    if (!genero) {
+      return res.status(404).json({
+        mensaje: "Género no encontrado"
+      });
+    }
+
+    res.json(genero);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al buscar el género"
     });
   }
-
-  res.json(genero);
 });
 
-// crear un nuevo género
-router.post("/", function(req, res) {
-  var nombre = req.body.nombre;
-  var activo = req.body.activo;
+// crear un género
+router.post("/", async (req, res) => {
+  try {
+    const generos = await leerGeneros();
 
-  if (activo === undefined) {
-    activo = true;
-  }
+    const nuevoGenero = {
+      id_genero: generos.length > 0
+        ? generos.at(-1).id_genero + 1
+        : 1,
+      nombre: req.body.nombre,
+      activo: req.body.activo
+    };
 
-  if (!nombre) {
-    return res.status(400).json({
-      mensaje: "El nombre es obligatorio"
+    generos.push(nuevoGenero);
+    await guardarGeneros(generos);
+
+    res.status(201).json(nuevoGenero);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al crear el género"
     });
   }
-
-  var generos = leerJson("generos.json");
-
-  var nuevoGenero = {
-    id_genero: siguienteId(generos, "id_genero"),
-    nombre: nombre,
-    activo: activo
-  };
-
-  generos.push(nuevoGenero);
-  guardarJson("generos.json", generos);
-
-  res.status(201).json(nuevoGenero);
 });
 
 // modificar un género
-router.put("/:id", function(req, res) {
-  var generos = leerJson("generos.json");
-  var id = Number(req.params.id);
+router.put("/:id", async (req, res) => {
+  try {
+    const generos = await leerGeneros();
+    const id = parseInt(req.params.id);
 
-  var indice = generos.findIndex(function(genero) {
-    return genero.id_genero === id;
-  });
+    const index = generos.findIndex(
+      genero => genero.id_genero === id
+    );
 
-  if (indice === -1) {
-    return res.status(404).json({
-      mensaje: "Género no encontrado"
+    if (index === -1) {
+      return res.status(404).json({
+        mensaje: "Género no encontrado"
+      });
+    }
+
+    if (req.body.nombre !== undefined) {
+      generos[index].nombre = req.body.nombre;
+    }
+
+    if (req.body.activo !== undefined) {
+      generos[index].activo = req.body.activo;
+    }
+
+    await guardarGeneros(generos);
+
+    res.json(generos[index]);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al modificar el género"
     });
   }
-
-  var nombre = req.body.nombre;
-  var activo = req.body.activo;
-
-  if (nombre !== undefined) {
-    generos[indice].nombre = nombre;
-  }
-
-  if (activo !== undefined) {
-    generos[indice].activo = activo;
-  }
-
-  guardarJson("generos.json", generos);
-
-  res.json(generos[indice]);
 });
 
 // eliminar un género
-router.delete("/:id", function(req, res) {
-  var generos = leerJson("generos.json");
-  var libros = leerJson("libros.json");
-  var id = Number(req.params.id);
+router.delete("/:id", async (req, res) => {
+  try {
+    const generos = await leerGeneros();
+    const libros = await leerLibros();
+    const id = parseInt(req.params.id);
 
-  var indice = generos.findIndex(function(genero) {
-    return genero.id_genero === id;
-  });
+    const index = generos.findIndex(
+      genero => genero.id_genero === id
+    );
 
-  if (indice === -1) {
-    return res.status(404).json({
-      mensaje: "Género no encontrado"
+    if (index === -1) {
+      return res.status(404).json({
+        mensaje: "Género no encontrado"
+      });
+    }
+
+    const tieneLibros = libros.find(
+      libro => libro.id_genero === id
+    );
+
+    if (tieneLibros) {
+      return res.status(400).json({
+        mensaje: "No se puede eliminar el género porque tiene libros asociados"
+      });
+    }
+
+    const generoEliminado = generos.splice(index, 1);
+    await guardarGeneros(generos);
+
+    res.json(generoEliminado[0]);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al eliminar el género"
     });
   }
-
-  var tieneLibros = libros.some(function(libro) {
-    return libro.id_genero === id;
-  });
-
-  if (tieneLibros) {
-    return res.status(409).json({
-      mensaje: "No se puede eliminar el género porque tiene libros asociados"
-    });
-  }
-
-  var generoEliminado = generos.splice(indice, 1)[0];
-
-  guardarJson("generos.json", generos);
-
-  res.json({
-    mensaje: "Género eliminado correctamente",
-    genero: generoEliminado
-  });
 });
 
-module.exports = router;
+export default router;

@@ -1,24 +1,13 @@
 {
   "name": "themanuscript-libreria",
   "version": "1.0.0",
-  "description": "**Materia:** Aplicaciones Web II",
+  "description": "Actividad Librería - Aplicaciones Web 2",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AnaJosefinaMigotti/TheManuscript-Libreria.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/AnaJosefinaMigotti/TheManuscript-Libreria/issues"
-  },
-  "homepage": "https://github.com/AnaJosefinaMigotti/TheManuscript-Libreria#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.1.0"
   }
 }

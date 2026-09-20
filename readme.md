@@ -1,102 +1,52 @@
-# The Manuscript Librería
+# Actividad Librería
 
-**Materia:** Aplicaciones Web II
-
-**Estudiante:** Migotti, Ana Josefina
-
+**Materia:** Aplicaciones Web II  
+**Estudiante:** Migotti, Ana Josefina  
 **N° de Documento:** 43.132.432
 
-## Descripción del proyecto
+Segunda entrega del trabajo práctico de Aplicaciones Web 2.
 
-**The Manuscript Librería** es un proyecto para la gestión de la venta de libros online.
+En esta entrega se agregó Express al proyecto y se crearon las rutas necesarias para trabajar con los datos de clientes, libros, géneros y ventas.
 
-Para esta primera entrega se crearon cuatro archivos JSON relacionados entre sí, que permiten representar clientes, libros, géneros y ventas.
-
-## Archivos JSON
-
-### `clientes.json`
-
-Contiene la información de los clientes registrados en la librería. Cada cliente se identifica mediante `id_cliente` e incluye datos personales y de contacto, además de un campo booleano que indica si se encuentra activo.
-
-### `generos.json`
-
-Contiene los diferentes géneros utilizados para clasificar los libros. Cada género posee un `id_genero`, que permite relacionarlo con los registros almacenados en `libros.json`.
-
-### `libros.json`
-
-Contiene el catálogo de libros de la librería. Cada libro se identifica mediante `id_libro` e incluye información como título, autor, precio, stock y disponibilidad. La relación con su género se establece mediante `id_genero`.
-
-### `ventas.json`
-
-Registra las ventas realizadas en la librería. Cada operación posee un `id_venta` y se relaciona con el cliente que realizó la compra mediante `id_cliente`.
-
-Los libros incluidos en cada venta se almacenan en un array de objetos que contiene el `id_libro` y la cantidad de ejemplares adquiridos. De esta manera, una venta puede incluir uno o varios libros.
-
-## Relación entre los archivos
-
-La estructura general de relaciones es:
-
-**CLIENTES → VENTAS ← LIBROS → GÉNEROS**
-
-* Un cliente puede realizar una o varias ventas.
-
-* Cada venta corresponde a un cliente.
-
-* Una venta puede incluir uno o varios libros.
-
-* Un mismo libro puede formar parte de diferentes ventas.
-
-* Cada libro se encuentra asociado a un género.
-
-## Datos de ejemplo
-
-Los archivos contienen datos de ejemplo para representar distintas situaciones dentro de la librería:
-
-* **5 clientes**
-
-* **10 libros**
-
-* **8 ventas**
-
-* **4 géneros literarios**
-
-Las estructuras utilizan datos de tipo **string, numérico y booleano**, manteniendo la coherencia entre los diferentes archivos mediante sus respectivos identificadores.
+Los datos se encuentran guardados en archivos JSON.
 
 ---
 
-# Segunda entrega - Servidor Express.js
+## Para ejecutar el proyecto
 
-Para esta segunda entrega se creó un servidor utilizando Express.js y se desarrollaron rutas de enrutamiento para gestionar las solicitudes relacionadas con clientes, libros, géneros y ventas.
+1. Descargar o clonar el repositorio.
 
-Los datos continúan almacenándose en los archivos JSON creados en la primera entrega.
+2. Abrir la carpeta del proyecto en Visual Studio Code.
 
-## Ejecución del proyecto
-
-Instalar las dependencias:
+3. Ejecutar:
 
 ```bash
 npm install
 ```
 
-En caso de que PowerShell no permita ejecutar el comando anterior debido a la política de ejecución de scripts, utilizar:
+Si no funciona y aparece el mensaje:
+
+"No se puede cargar el archivo ...... porque la ejecución de scripts está deshabilitada en este sistema....."
+
+Ejecutar:
 
 ```bash
 npm.cmd install
 ```
 
-Iniciar el servidor:
+4. Iniciar el servidor:
 
 ```bash
-node server.js
+node index.js
 ```
 
-Si el servidor se inicia correctamente, en la terminal aparecerá:
+Si todo funciona correctamente, en la terminal aparecerá:
 
 ```text
-Servidor ejecutándose en http://localhost:3000
+Servidor corriendo en http://localhost:3000
 ```
 
-El servidor debe permanecer ejecutándose mientras se realizan las solicitudes.
+El servidor debe permanecer ejecutándose mientras se realizan las pruebas.
 
 ---
 
@@ -168,27 +118,65 @@ http://localhost:3000/ventas/1
 
 ---
 
-# Prueba de solicitudes POST, PUT y DELETE
+## Para probar las solicitudes POST, PUT y DELETE
 
-Las solicitudes GET pueden probarse directamente desde el navegador.
+Las solicitudes GET se pueden probar directamente desde el navegador.
 
-Para realizar las solicitudes POST, PUT y DELETE se utiliza Thunder Client, extensión de Visual Studio Code que permite seleccionar el método HTTP, ingresar los datos necesarios y enviar la solicitud al servidor.
+Para probar las solicitudes POST, PUT y DELETE vamos a utilizar Thunder Client, una extensión de Visual Studio Code que permite elegir el tipo de solicitud y enviar datos al servidor.
 
-El servidor debe ejecutarse primero.
+### Instalar Thunder Client
 
-En Thunder Client se debe seleccionar `New Request`, elegir el método correspondiente e ingresar la URL de la solicitud.
+1. Abrir Visual Studio Code.
 
-Para las solicitudes POST y PUT que requieran el envío de datos, seleccionar:
+2. Seleccionar `Extensiones` en la barra lateral izquierda.
 
-`Body` → `JSON`
+3. En el buscador escribir:
+
+```text
+Thunder Client
+```
+
+4. Seleccionar Thunder Client y presionar `Install`.
+
+5. Una vez instalado, abrir Thunder Client desde el nuevo ícono que aparece en la barra lateral de Visual Studio Code.
+
+6. Seleccionar `New Request`.
+
+### Realizar una solicitud
+
+1. Verificar que el servidor continúe ejecutándose. En la terminal debe aparecer:
+
+```text
+Servidor corriendo en http://localhost:3000
+```
+
+Si el servidor no está ejecutándose, abrir la terminal y ejecutar:
+
+```bash
+node index.js
+```
+
+2. En Thunder Client seleccionar el tipo de solicitud que se quiere realizar: `POST`, `PUT` o `DELETE`.
+
+3. Copiar y pegar la URL correspondiente en el campo de dirección.
+
+4. Para las solicitudes POST y PUT que necesiten enviar datos, seleccionar la pestaña `Body`.
+
+5. Seleccionar el formato `JSON`.
+
+6. Copiar y pegar los datos indicados en los ejemplos.
+
+7. Presionar `Send`.
+
+La respuesta del servidor aparecerá en Thunder Client.
 
 ---
 
-# Solicitudes POST
+## Solicitudes POST
 
-Las solicitudes POST se utilizan para crear nuevos registros.
+Las solicitudes POST se utilizan para agregar nuevos registros.
 
-## POST - Crear un cliente
+### POST - Crear un cliente
 
 URL:
 
@@ -208,11 +196,11 @@ En `Body` → `JSON` ingresar:
 }
 ```
 
-Si el registro se crea correctamente, el servidor devuelve el nuevo cliente con su ID.
+Presionar `Send`.
 
-El email ingresado no puede encontrarse registrado previamente para otro cliente.
+Si el registro se creó correctamente, el servidor devolverá el nuevo cliente con su ID.
 
-## POST - Crear un libro
+### POST - Crear un libro
 
 URL:
 
@@ -220,9 +208,23 @@ URL:
 http://localhost:3000/libros
 ```
 
-Los datos correspondientes al nuevo libro deben enviarse en formato JSON mediante el `Body` de la solicitud.
+En `Body` → `JSON` ingresar:
 
-## POST - Crear un género
+```json
+{
+  "titulo": "Don Quijote de la Mancha",
+  "autor": "Miguel de Cervantes",
+  "id_genero": 1,
+  "precio": 30000,
+  "stock": 5
+}
+```
+
+Presionar `Send`.
+
+Al agregar un libro se controla que el género indicado exista.
+
+### POST - Crear un género
 
 URL:
 
@@ -239,9 +241,9 @@ En `Body` → `JSON` ingresar:
 }
 ```
 
-Si el registro se crea correctamente, el servidor devuelve el nuevo género con su ID.
+Presionar `Send`.
 
-## POST - Registrar una venta
+### POST - Registrar una venta
 
 URL:
 
@@ -249,23 +251,49 @@ URL:
 http://localhost:3000/ventas
 ```
 
-Los datos correspondientes a la nueva venta deben enviarse en formato JSON mediante el `Body` de la solicitud.
+En `Body` → `JSON` ingresar:
+
+```json
+{
+  "id_cliente": 2,
+  "fecha": "2026-09-07",
+  "pagada": true,
+  "libros": [
+    {
+      "id_libro": 2,
+      "cantidad": 1
+    },
+    {
+      "id_libro": 5,
+      "cantidad": 2
+    }
+  ]
+}
+```
+
+Presionar `Send`.
+
+Al registrar una venta se controla que el cliente exista y esté activo, que los libros existan y que tengan stock suficiente.
+
+Cuando la venta se registra, se descuenta del stock la cantidad correspondiente de cada libro.
 
 ---
 
-# Solicitudes PUT
+## Solicitudes PUT
 
-Las solicitudes PUT se utilizan para actualizar registros existentes.
+Las solicitudes PUT se utilizan para modificar registros existentes.
 
-## PUT - Modificar un cliente
+### PUT - Modificar un cliente
 
-Ejemplo para modificar el cliente con ID 1:
+Ejemplo para modificar el cliente con ID 1.
+
+URL:
 
 ```text
 http://localhost:3000/clientes/1
 ```
 
-En `Body` → `JSON` ingresar, por ejemplo:
+En `Body` → `JSON` ingresar:
 
 ```json
 {
@@ -273,29 +301,40 @@ En `Body` → `JSON` ingresar, por ejemplo:
 }
 ```
 
-Solamente se modifican los datos enviados en la solicitud.
+Presionar `Send`.
 
-Si se modifica el email, se controla que no se encuentre registrado para otro cliente.
+### PUT - Modificar un libro
 
-## PUT - Modificar un libro
+Ejemplo para modificar el libro con ID 1.
 
-Ejemplo para modificar el libro con ID 1:
+URL:
 
 ```text
 http://localhost:3000/libros/1
 ```
 
-Los datos que se desean modificar deben enviarse mediante `Body` → `JSON`.
+En `Body` → `JSON` ingresar:
 
-## PUT - Modificar un género
+```json
+{
+  "precio": 29000,
+  "stock": 10
+}
+```
 
-Ejemplo para modificar el género con ID 1:
+Presionar `Send`.
+
+### PUT - Modificar un género
+
+Ejemplo para modificar el género con ID 1.
+
+URL:
 
 ```text
 http://localhost:3000/generos/1
 ```
 
-En `Body` → `JSON` ingresar, por ejemplo:
+En `Body` → `JSON` ingresar:
 
 ```json
 {
@@ -304,96 +343,88 @@ En `Body` → `JSON` ingresar, por ejemplo:
 }
 ```
 
-## PUT - Modificar una venta
+Presionar `Send`.
 
-Ejemplo para modificar la venta con ID 1:
+### PUT - Modificar una venta
+
+Ejemplo para modificar el estado de pago de la venta con ID 1.
+
+URL:
 
 ```text
 http://localhost:3000/ventas/1
 ```
 
-Los datos que se desean modificar deben enviarse mediante `Body` → `JSON`.
+En `Body` → `JSON` ingresar:
+
+```json
+{
+  "pagada": true
+}
+```
+
+Presionar `Send`.
 
 ---
 
-# Solicitudes DELETE
+## Solicitudes DELETE
 
 Las solicitudes DELETE se utilizan para eliminar registros.
 
-Para realizar estas solicitudes se debe seleccionar el método `DELETE` en Thunder Client, ingresar la URL correspondiente y presionar `Send`.
+Para probarlas, seleccionar el método `DELETE` en Thunder Client, copiar la URL correspondiente y presionar `Send`.
 
 No es necesario ingresar datos en `Body`.
 
-## DELETE - Eliminar un cliente
+### DELETE - Eliminar un cliente
 
-Ejemplo:
+Ejemplo para eliminar el cliente con ID 6:
 
 ```text
 http://localhost:3000/clientes/6
 ```
 
-Antes de eliminar el registro se controla si el cliente posee ventas asociadas.
+El cliente solamente se puede eliminar si no tiene ventas asociadas.
 
-Si existen ventas relacionadas con el cliente, el registro no puede eliminarse, manteniendo de esta manera la integridad de los datos.
+### DELETE - Eliminar un libro
 
-## DELETE - Eliminar un libro
-
-Ejemplo:
+Ejemplo para eliminar el libro con ID 11:
 
 ```text
 http://localhost:3000/libros/11
 ```
 
-## DELETE - Eliminar un género
+El libro solamente se puede eliminar si no aparece relacionado con una venta.
 
-Ejemplo:
+### DELETE - Eliminar un género
+
+Ejemplo para eliminar el género con ID 5:
 
 ```text
 http://localhost:3000/generos/5
 ```
 
-Antes de eliminar el registro se controla si existen libros asociados al género.
+El género solamente se puede eliminar si no tiene libros asociados.
 
-Si existen libros relacionados, el género no puede eliminarse, manteniendo de esta manera la integridad de los datos.
+### DELETE - Eliminar una venta
 
-## DELETE - Eliminar una venta
-
-Ejemplo:
+Ejemplo para eliminar la venta con ID 9:
 
 ```text
 http://localhost:3000/ventas/9
 ```
 
----
-
-# Validaciones
-
-Para mantener la coherencia y la integridad de los datos se implementaron diferentes controles durante el procesamiento de las solicitudes.
-
-* Se verifica la existencia de los registros antes de realizar determinadas operaciones.
-
-* Se controlan los campos obligatorios al crear nuevos registros.
-
-* No se permite registrar dos clientes con el mismo email.
-
-* No se puede eliminar un cliente que tenga ventas asociadas.
-
-* No se puede eliminar un género que tenga libros asociados.
-
-* Si se intenta consultar, modificar o eliminar un registro inexistente, el servidor informa que el registro no fue encontrado.
-
-* Las relaciones entre clientes, ventas, libros y géneros se mantienen mediante sus respectivos identificadores.
+Al eliminar una venta, las cantidades de los libros incluidos en esa venta se vuelven a sumar al stock.
 
 ---
 
-# Archivo .gitignore
+## Validaciones
 
-Se incorporó un archivo `.gitignore` para evitar la incorporación al repositorio de las dependencias instaladas localmente.
+Para mantener la relación entre los datos se agregaron algunas validaciones:
 
-```text
-# Dependencias de Node.js
-node_modules/
-
-# Directorio de dependencias generadas por npm
-package-lock.json
-```
+- No se puede eliminar un cliente si tiene ventas asociadas.
+- No se puede eliminar un libro si aparece en una venta.
+- No se puede eliminar un género si tiene libros asociados.
+- Para registrar una venta, el cliente debe existir y estar activo.
+- Los libros incluidos en una venta deben existir y tener stock suficiente.
+- Cuando se registra una venta se descuenta el stock correspondiente.
+- Si se elimina una venta, las cantidades de los libros vuelven a sumarse al stock.
