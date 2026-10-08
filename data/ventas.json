@@ -130,5 +130,18 @@
         "cantidad": 1
       }
     ]
+  },
+  {
+    "id_venta": 9,
+    "id_cliente": 2,
+    "fecha": "2026-10-08T21:41:04.425Z",
+    "total": 22500,
+    "pagada": true,
+    "libros": [
+      {
+        "id_libro": 9,
+        "cantidad": 1
+      }
+    ]
   }
 ]
