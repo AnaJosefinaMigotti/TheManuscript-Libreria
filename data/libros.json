@@ -23,7 +23,7 @@
     "autor": "Jorge Luis Borges",
     "id_genero": 2,
     "precio": 22000,
-    "stock": 4,
+    "stock": 3,
     "disponible": true
   },
   {
@@ -50,7 +50,7 @@
     "autor": "George Orwell",
     "id_genero": 4,
     "precio": 21500,
-    "stock": 7,
+    "stock": 6,
     "disponible": true
   },
   {

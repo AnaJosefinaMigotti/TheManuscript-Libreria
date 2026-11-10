@@ -1,160 +1,81 @@
+
 import express from "express";
-import fs from "fs/promises";
+import { obtenerBaseDatos } from "../config/database.js";
 
 const router = express.Router();
-const archivoGeneros = "./data/generos.json";
-const archivoLibros = "./data/libros.json";
 
-// leer géneros
-const leerGeneros = async () => {
-  const data = await fs.readFile(archivoGeneros, "utf-8");
-  return JSON.parse(data);
+const obtenerGeneros = () => {
+    return obtenerBaseDatos().collection("generos");
 };
 
-// guardar géneros
-const guardarGeneros = async (generos) => {
-  await fs.writeFile(
-    archivoGeneros,
-    JSON.stringify(generos, null, 2)
-  );
+const generoPublico = (genero) => {
+    const { _id, ...datosGenero } = genero;
+    return datosGenero;
 };
 
-// leer libros
-const leerLibros = async () => {
-  const data = await fs.readFile(archivoLibros, "utf-8");
-  return JSON.parse(data);
-};
-
-// traer todos los géneros
 router.get("/", async (req, res) => {
-  try {
-    const generos = await leerGeneros();
-    res.json(generos);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al leer los géneros"
-    });
-  }
+    try {
+        const generos = await obtenerGeneros()
+            .find({})
+            .sort({ id_genero: 1 })
+            .toArray();
+
+        res.json(generos.map(generoPublico));
+    } catch (error) {
+        console.error("Error al leer los géneros:", error);
+
+        res.status(500).json({
+            mensaje: "Error al leer los géneros"
+        });
+    }
 });
 
-// buscar un género por ID
 router.get("/:id", async (req, res) => {
-  try {
-    const generos = await leerGeneros();
-    const id = parseInt(req.params.id);
+    try {
+        const id = Number(req.params.id);
 
-    const genero = generos.find(
-      genero => genero.id_genero === id
-    );
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                mensaje: "El ID del género no es válido"
+            });
+        }
 
-    if (!genero) {
-      return res.status(404).json({
-        mensaje: "Género no encontrado"
-      });
+        const genero = await obtenerGeneros().findOne({
+            id_genero: id
+        });
+
+        if (!genero) {
+            return res.status(404).json({
+                mensaje: "Género no encontrado"
+            });
+        }
+
+        res.json(generoPublico(genero));
+    } catch (error) {
+        console.error("Error al buscar el género:", error);
+
+        res.status(500).json({
+            mensaje: "Error al buscar el género"
+        });
     }
-
-    res.json(genero);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al buscar el género"
-    });
-  }
 });
 
-// crear un género
-router.post("/", async (req, res) => {
-  try {
-    const generos = await leerGeneros();
-
-    const nuevoGenero = {
-      id_genero: generos.length > 0
-        ? generos.at(-1).id_genero + 1
-        : 1,
-      nombre: req.body.nombre,
-      activo: req.body.activo
-    };
-
-    generos.push(nuevoGenero);
-    await guardarGeneros(generos);
-
-    res.status(201).json(nuevoGenero);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al crear el género"
+router.post("/", (req, res) => {
+    res.status(403).json({
+        mensaje: "La creación de géneros requiere permisos de administración"
     });
-  }
 });
 
-// modificar un género
-router.put("/:id", async (req, res) => {
-  try {
-    const generos = await leerGeneros();
-    const id = parseInt(req.params.id);
-
-    const index = generos.findIndex(
-      genero => genero.id_genero === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Género no encontrado"
-      });
-    }
-
-    if (req.body.nombre !== undefined) {
-      generos[index].nombre = req.body.nombre;
-    }
-
-    if (req.body.activo !== undefined) {
-      generos[index].activo = req.body.activo;
-    }
-
-    await guardarGeneros(generos);
-
-    res.json(generos[index]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al modificar el género"
+router.put("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La modificación de géneros requiere permisos de administración"
     });
-  }
 });
 
-// eliminar un género
-router.delete("/:id", async (req, res) => {
-  try {
-    const generos = await leerGeneros();
-    const libros = await leerLibros();
-    const id = parseInt(req.params.id);
-
-    const index = generos.findIndex(
-      genero => genero.id_genero === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Género no encontrado"
-      });
-    }
-
-    const tieneLibros = libros.find(
-      libro => libro.id_genero === id
-    );
-
-    if (tieneLibros) {
-      return res.status(400).json({
-        mensaje: "No se puede eliminar el género porque tiene libros asociados"
-      });
-    }
-
-    const generoEliminado = generos.splice(index, 1);
-    await guardarGeneros(generos);
-
-    res.json(generoEliminado[0]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al eliminar el género"
+router.delete("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La eliminación de géneros requiere permisos de administración"
     });
-  }
 });
 
 export default router;

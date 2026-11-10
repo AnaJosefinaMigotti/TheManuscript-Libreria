@@ -5,7 +5,8 @@
     "apellido": "Gómez",
     "email": "laura.gomez@gmail.com",
     "telefono": "3514447788",
-    "activo": false
+    "activo": false,
+    "password_hash": "$2b$10$QEUk6vXNc6ajB/7RlkJXzu6xmDGDYOz7Z61IJApIxk0desVfQTpn6"
   },
   {
     "id_cliente": 2,
@@ -13,7 +14,8 @@
     "apellido": "López",
     "email": "martin.lopez@gmail.com",
     "telefono": "3515678901",
-    "activo": true
+    "activo": true,
+    "password_hash": "$2b$10$q2SZZjDfvxi7NYPRIf1Oe..uX9/CgRjBtZPWzaaEh16wraUyN76xa"
   },
   {
     "id_cliente": 3,
@@ -21,7 +23,8 @@
     "apellido": "Martínez",
     "email": "sofia.martinez@gmail.com",
     "telefono": "3516789012",
-    "activo": true
+    "activo": true,
+    "password_hash": "$2b$10$IZ6.Ks0zKo3Szr3wkX/t3.3A.abzrLQWJ/zFLpF5hGdDccw0EuWqm"
   },
   {
     "id_cliente": 4,
@@ -29,7 +32,8 @@
     "apellido": "Rodríguez",
     "email": "pablo.rodriguez@gmail.com",
     "telefono": "3517890123",
-    "activo": false
+    "activo": false,
+    "password_hash": "$2b$10$wuGwFFUQI3YHoR0L6cd5qOG9s4QkJ80vwDol8SDJQZbXiFN2Zib42"
   },
   {
     "id_cliente": 5,
@@ -37,6 +41,7 @@
     "apellido": "Fernández",
     "email": "valentina.fernandez@gmail.com",
     "telefono": "3518901234",
-    "activo": true
+    "activo": true,
+    "password_hash": "$2b$10$78qdWSivy2FtkVYHwxry4eE/udfyIvNbar0MaZJd9rpBSMKnAgyFG"
   }
 ]

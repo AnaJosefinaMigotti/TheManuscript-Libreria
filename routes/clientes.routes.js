@@ -1,175 +1,178 @@
 import express from "express";
-import fs from "fs/promises";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { obtenerBaseDatos } from "../config/database.js";
 
 const router = express.Router();
-const archivoClientes = "./data/clientes.json";
-const archivoVentas = "./data/ventas.json";
 
-// leer clientes
-const leerClientes = async () => {
-  const data = await fs.readFile(archivoClientes, "utf-8");
-  return JSON.parse(data);
+const obtenerClientes = () => {
+    return obtenerBaseDatos().collection("clientes");
 };
 
-// guardar clientes
-const guardarClientes = async (clientes) => {
-  await fs.writeFile(
-    archivoClientes,
-    JSON.stringify(clientes, null, 2)
-  );
+const clientePublico = (cliente) => {
+    const { _id, password_hash, ...datosCliente } = cliente;
+    return datosCliente;
 };
 
-// leer ventas
-const leerVentas = async () => {
-  const data = await fs.readFile(archivoVentas, "utf-8");
-  return JSON.parse(data);
+const verificarToken = (req, res, next) => {
+    const encabezado = req.headers.authorization;
+
+    const token = encabezado?.startsWith("Bearer ")
+        ? encabezado.slice(7)
+        : null;
+
+    if (!token) {
+        return res.status(401).json({
+            mensaje: "Se requiere iniciar sesión"
+        });
+    }
+
+    try {
+        req.usuario = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            mensaje: "Token inválido o vencido"
+        });
+    }
 };
 
-// traer todos los clientes
+router.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (
+            typeof email !== "string" ||
+            typeof password !== "string" ||
+            !email.trim() ||
+            !password
+        ) {
+            return res.status(400).json({
+                mensaje: "Debe ingresar correo electrónico y contraseña"
+            });
+        }
+
+        const clientes = obtenerClientes();
+
+        const cliente = await clientes.findOne({
+            email: email.trim().toLowerCase()
+        });
+
+        if (!cliente || !cliente.activo) {
+            return res.status(401).json({
+                mensaje: "Credenciales incorrectas o cliente inactivo"
+            });
+        }
+
+        if (typeof cliente.password_hash !== "string") {
+            return res.status(401).json({
+                mensaje: "El cliente no tiene una contraseña configurada"
+            });
+        }
+
+        const contraseñaCorrecta = await bcrypt.compare(
+            password,
+            cliente.password_hash
+        );
+
+        if (!contraseñaCorrecta) {
+            return res.status(401).json({
+                mensaje: "Credenciales incorrectas o cliente inactivo"
+            });
+        }
+
+        const token = jwt.sign(
+            { id_cliente: cliente.id_cliente },
+            process.env.JWT_SECRET,
+            { expiresIn: "2h" }
+        );
+
+        res.json({
+            mensaje: "Inicio de sesión correcto",
+            cliente: clientePublico(cliente),
+            token
+        });
+    } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+
+        res.status(500).json({
+            mensaje: "Error al iniciar sesión"
+        });
+    }
+});
+
+router.use(verificarToken);
+
 router.get("/", async (req, res) => {
-  try {
-    const clientes = await leerClientes();
-    res.json(clientes);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al leer los clientes"
-    });
-  }
+    try {
+        const cliente = await obtenerClientes().findOne({
+            id_cliente: req.usuario.id_cliente,
+            activo: true
+        });
+
+        if (!cliente) {
+            return res.status(404).json({
+                mensaje: "Cliente no encontrado"
+            });
+        }
+
+        res.json(clientePublico(cliente));
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al leer el cliente"
+        });
+    }
 });
 
-// buscar un cliente por ID
 router.get("/:id", async (req, res) => {
-  try {
-    const clientes = await leerClientes();
-    const id = parseInt(req.params.id);
+    try {
+        const id = Number(req.params.id);
 
-    const cliente = clientes.find(
-      cliente => cliente.id_cliente === id
-    );
+        if (id !== req.usuario.id_cliente) {
+            return res.status(403).json({
+                mensaje: "No tiene permiso para consultar este cliente"
+            });
+        }
 
-    if (!cliente) {
-      return res.status(404).json({
-        mensaje: "Cliente no encontrado"
-      });
+        const cliente = await obtenerClientes().findOne({
+            id_cliente: id,
+            activo: true
+        });
+
+        if (!cliente) {
+            return res.status(404).json({
+                mensaje: "Cliente no encontrado"
+            });
+        }
+
+        res.json(clientePublico(cliente));
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al buscar el cliente"
+        });
     }
-
-    res.json(cliente);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al buscar el cliente"
-    });
-  }
 });
 
-// crear un cliente
-router.post("/", async (req, res) => {
-  try {
-    const clientes = await leerClientes();
-
-    const nuevoCliente = {
-      id_cliente: clientes.length > 0
-        ? clientes.at(-1).id_cliente + 1
-        : 1,
-      nombre: req.body.nombre,
-      apellido: req.body.apellido,
-      email: req.body.email,
-      telefono: req.body.telefono,
-      activo: req.body.activo
-    };
-
-    clientes.push(nuevoCliente);
-    await guardarClientes(clientes);
-
-    res.status(201).json(nuevoCliente);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al crear el cliente"
+router.post("/", (req, res) => {
+    res.status(403).json({
+        mensaje: "La creación de clientes está deshabilitada"
     });
-  }
 });
 
-// modificar un cliente
-router.put("/:id", async (req, res) => {
-  try {
-    const clientes = await leerClientes();
-    const id = parseInt(req.params.id);
-
-    const index = clientes.findIndex(
-      cliente => cliente.id_cliente === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Cliente no encontrado"
-      });
-    }
-
-    if (req.body.nombre !== undefined) {
-      clientes[index].nombre = req.body.nombre;
-    }
-
-    if (req.body.apellido !== undefined) {
-      clientes[index].apellido = req.body.apellido;
-    }
-
-    if (req.body.email !== undefined) {
-      clientes[index].email = req.body.email;
-    }
-
-    if (req.body.telefono !== undefined) {
-      clientes[index].telefono = req.body.telefono;
-    }
-
-    if (req.body.activo !== undefined) {
-      clientes[index].activo = req.body.activo;
-    }
-
-    await guardarClientes(clientes);
-
-    res.json(clientes[index]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al modificar el cliente"
+router.put("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La modificación de clientes está deshabilitada"
     });
-  }
 });
 
-// eliminar un cliente
-router.delete("/:id", async (req, res) => {
-  try {
-    const clientes = await leerClientes();
-    const ventas = await leerVentas();
-    const id = parseInt(req.params.id);
-
-    const index = clientes.findIndex(
-      cliente => cliente.id_cliente === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Cliente no encontrado"
-      });
-    }
-
-    const tieneVentas = ventas.find(
-      venta => venta.id_cliente === id
-    );
-
-    if (tieneVentas) {
-      return res.status(400).json({
-        mensaje: "No se puede eliminar el cliente porque tiene ventas asociadas"
-      });
-    }
-
-    const clienteEliminado = clientes.splice(index, 1);
-    await guardarClientes(clientes);
-
-    res.json(clienteEliminado[0]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al eliminar el cliente"
+router.delete("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La eliminación de clientes está deshabilitada"
     });
-  }
 });
 
 export default router;

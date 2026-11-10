@@ -1,283 +1,236 @@
 import express from "express";
 import fs from "fs/promises";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
+
 const archivoVentas = "./data/ventas.json";
 const archivoClientes = "./data/clientes.json";
 const archivoLibros = "./data/libros.json";
 
-// leer ventas
 const leerVentas = async () => {
-  const data = await fs.readFile(archivoVentas, "utf-8");
-  return JSON.parse(data);
+    const data = await fs.readFile(archivoVentas, "utf-8");
+    return JSON.parse(data);
 };
 
-// guardar ventas
 const guardarVentas = async (ventas) => {
-  await fs.writeFile(
-    archivoVentas,
-    JSON.stringify(ventas, null, 2)
-  );
+    await fs.writeFile(
+        archivoVentas,
+        JSON.stringify(ventas, null, 2)
+    );
 };
 
-// leer clientes
 const leerClientes = async () => {
-  const data = await fs.readFile(archivoClientes, "utf-8");
-  return JSON.parse(data);
+    const data = await fs.readFile(archivoClientes, "utf-8");
+    return JSON.parse(data);
 };
 
-// leer libros
 const leerLibros = async () => {
-  const data = await fs.readFile(archivoLibros, "utf-8");
-  return JSON.parse(data);
+    const data = await fs.readFile(archivoLibros, "utf-8");
+    return JSON.parse(data);
 };
 
-// gguardar libros
 const guardarLibros = async (libros) => {
-  await fs.writeFile(
-    archivoLibros,
-    JSON.stringify(libros, null, 2)
-  );
+    await fs.writeFile(
+        archivoLibros,
+        JSON.stringify(libros, null, 2)
+    );
 };
 
-// traer todas las ventas
+const verificarToken = (req, res, next) => {
+    const autorizacion = req.headers.authorization;
+
+    const token = autorizacion?.startsWith("Bearer ")
+        ? autorizacion.slice(7)
+        : null;
+
+    if (!token) {
+        return res.status(401).json({
+            mensaje: "Debés iniciar sesión para continuar"
+        });
+    }
+
+    try {
+        req.usuario = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            mensaje: "Token inválido o vencido"
+        });
+    }
+};
+
+router.use(verificarToken);
+
 router.get("/", async (req, res) => {
-  try {
-    const ventas = await leerVentas();
-    res.json(ventas);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al leer las ventas"
-    });
-  }
+    try {
+        const ventas = await leerVentas();
+
+        const ventasCliente = ventas.filter(
+            venta => venta.id_cliente === req.usuario.id_cliente
+        );
+
+        res.json(ventasCliente);
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al leer las ventas"
+        });
+    }
 });
 
-// buscar una venta por ID
 router.get("/:id", async (req, res) => {
-  try {
-    const ventas = await leerVentas();
-    const id = parseInt(req.params.id);
+    try {
+        const id = Number(req.params.id);
+        const ventas = await leerVentas();
 
-    const venta = ventas.find(
-      venta => venta.id_venta === id
-    );
+        const venta = ventas.find(
+            item =>
+                item.id_venta === id &&
+                item.id_cliente === req.usuario.id_cliente
+        );
 
-    if (!venta) {
-      return res.status(404).json({
-        mensaje: "Venta no encontrada"
-      });
+        if (!venta) {
+            return res.status(404).json({
+                mensaje: "Venta no encontrada"
+            });
+        }
+
+        res.json(venta);
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al buscar la venta"
+        });
     }
-
-    res.json(venta);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al buscar la venta"
-    });
-  }
 });
 
-// registrar una nueva venta
 router.post("/", async (req, res) => {
-  try {
-    const ventas = await leerVentas();
-    const clientes = await leerClientes();
-    const libros = await leerLibros();
+    try {
+        const idCliente = req.usuario.id_cliente;
 
-    const idCliente = parseInt(req.body.id_cliente);
+        const clientes = await leerClientes();
 
-    const cliente = clientes.find(
-      cliente => cliente.id_cliente === idCliente
-    );
+        const cliente = clientes.find(
+            item => item.id_cliente === idCliente
+        );
 
-    if (!cliente) {
-      return res.status(400).json({
-        mensaje: "El cliente indicado no existe"
-      });
-    }
+        if (!cliente || !cliente.activo) {
+            return res.status(403).json({
+                mensaje: "El cliente no existe o está inactivo"
+            });
+        }
 
-    if (!cliente.activo) {
-      return res.status(400).json({
-        mensaje: "El cliente indicado no está activo"
-      });
-    }
+        if (
+            !Array.isArray(req.body.libros) ||
+            req.body.libros.length === 0
+        ) {
+            return res.status(400).json({
+                mensaje: "La venta debe incluir al menos un libro"
+            });
+        }
 
-    if (!req.body.libros || req.body.libros.length === 0) {
-      return res.status(400).json({
-        mensaje: "La venta debe incluir al menos un libro"
-      });
-    }
+        const ventas = await leerVentas();
+        const libros = await leerLibros();
 
-    let total = 0;
+        const librosVenta = [];
+        let total = 0;
 
-    for (let i = 0; i < req.body.libros.length; i++) {
-      const item = req.body.libros[i];
-      const idLibro = parseInt(item.id_libro);
-      const cantidad = parseInt(item.cantidad);
+        for (const item of req.body.libros) {
+            if (
+                !item ||
+                !Number.isInteger(item.id_libro) ||
+                !Number.isInteger(item.cantidad) ||
+                item.cantidad <= 0
+            ) {
+                return res.status(400).json({
+                    mensaje: "Los datos de los libros no son válidos"
+                });
+            }
 
-      const libro = libros.find(
-        libro => libro.id_libro === idLibro
-      );
+            const libroExistente = librosVenta.find(
+                libro => libro.id_libro === item.id_libro
+            );
 
-      if (!libro) {
-        return res.status(400).json({
-          mensaje: "El libro indicado no existe"
+            if (libroExistente) {
+                libroExistente.cantidad += item.cantidad;
+            } else {
+                librosVenta.push({
+                    id_libro: item.id_libro,
+                    cantidad: item.cantidad
+                });
+            }
+        }
+
+        for (const item of librosVenta) {
+            const libro = libros.find(
+                libro => libro.id_libro === item.id_libro
+            );
+
+            if (!libro) {
+                return res.status(400).json({
+                    mensaje: "El libro indicado no existe"
+                });
+            }
+
+            if (libro.stock < item.cantidad) {
+                return res.status(400).json({
+                    mensaje: "Stock insuficiente para " + libro.titulo
+                });
+            }
+
+            total += libro.precio * item.cantidad;
+        }
+
+        for (const item of librosVenta) {
+            const libro = libros.find(
+                libro => libro.id_libro === item.id_libro
+            );
+
+            libro.stock -= item.cantidad;
+            libro.disponible = libro.stock > 0;
+        }
+
+        const nuevoId = ventas.length > 0
+            ? Math.max(...ventas.map(venta => venta.id_venta)) + 1
+            : 1;
+
+        const nuevaVenta = {
+            id_venta: nuevoId,
+            id_cliente: idCliente,
+            fecha: new Date().toISOString(),
+            total: total,
+            pagada: true,
+            libros: librosVenta
+        };
+
+        ventas.push(nuevaVenta);
+
+        await guardarVentas(ventas);
+        await guardarLibros(libros);
+
+        res.status(201).json(nuevaVenta);
+    } catch (error) {
+        console.error("Error al registrar la venta:", error);
+
+        res.status(500).json({
+            mensaje: "Error al registrar la venta"
         });
-      }
-
-      if (cantidad <= 0) {
-        return res.status(400).json({
-          mensaje: "La cantidad debe ser mayor que cero"
-        });
-      }
-
-      if (libro.stock < cantidad) {
-        return res.status(400).json({
-          mensaje: "Stock insuficiente para " + libro.titulo
-        });
-      }
-
-      total = total + libro.precio * cantidad;
     }
-
-    for (let i = 0; i < req.body.libros.length; i++) {
-      const item = req.body.libros[i];
-      const idLibro = parseInt(item.id_libro);
-      const cantidad = parseInt(item.cantidad);
-
-      const libro = libros.find(
-        libro => libro.id_libro === idLibro
-      );
-
-      libro.stock = libro.stock - cantidad;
-      libro.disponible = libro.stock > 0;
-    }
-
-    const nuevaVenta = {
-      id_venta: ventas.length > 0
-        ? ventas.at(-1).id_venta + 1
-        : 1,
-      id_cliente: idCliente,
-      fecha: req.body.fecha,
-      total: total,
-      pagada: req.body.pagada,
-      libros: req.body.libros
-    };
-
-    ventas.push(nuevaVenta);
-
-    await guardarVentas(ventas);
-    await guardarLibros(libros);
-
-    res.status(201).json(nuevaVenta);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al registrar la venta"
-    });
-  }
 });
 
-// modificar una venta
-router.put("/:id", async (req, res) => {
-  try {
-    const ventas = await leerVentas();
-    const clientes = await leerClientes();
-    const id = parseInt(req.params.id);
-
-    const index = ventas.findIndex(
-      venta => venta.id_venta === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Venta no encontrada"
-      });
-    }
-
-    if (req.body.id_cliente !== undefined) {
-      const idCliente = parseInt(req.body.id_cliente);
-
-      const cliente = clientes.find(
-        cliente => cliente.id_cliente === idCliente
-      );
-
-      if (!cliente) {
-        return res.status(400).json({
-          mensaje: "El cliente indicado no existe"
-        });
-      }
-
-      if (!cliente.activo) {
-        return res.status(400).json({
-          mensaje: "El cliente indicado no está activo"
-        });
-      }
-
-      ventas[index].id_cliente = idCliente;
-    }
-
-    if (req.body.fecha !== undefined) {
-      ventas[index].fecha = req.body.fecha;
-    }
-
-    if (req.body.pagada !== undefined) {
-      ventas[index].pagada = req.body.pagada;
-    }
-
-    await guardarVentas(ventas);
-
-    res.json(ventas[index]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al modificar la venta"
+router.put("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La modificación de ventas está deshabilitada"
     });
-  }
 });
 
-// eliminar una venta
-router.delete("/:id", async (req, res) => {
-  try {
-    const ventas = await leerVentas();
-    const libros = await leerLibros();
-    const id = parseInt(req.params.id);
-
-    const index = ventas.findIndex(
-      venta => venta.id_venta === id
-    );
-
-    if (index === -1) {
-      return res.status(404).json({
-        mensaje: "Venta no encontrada"
-      });
-    }
-
-    const venta = ventas[index];
-
-    for (let i = 0; i < venta.libros.length; i++) {
-      const item = venta.libros[i];
-      const idLibro = parseInt(item.id_libro);
-      const cantidad = parseInt(item.cantidad);
-
-      const libro = libros.find(
-        libro => libro.id_libro === idLibro
-      );
-
-      if (libro) {
-        libro.stock = libro.stock + cantidad;
-        libro.disponible = libro.stock > 0;
-      }
-    }
-
-    const ventaEliminada = ventas.splice(index, 1);
-
-    await guardarVentas(ventas);
-    await guardarLibros(libros);
-
-    res.json(ventaEliminada[0]);
-  } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al eliminar la venta"
+router.delete("/:id", (req, res) => {
+    res.status(403).json({
+        mensaje: "La eliminación de ventas está deshabilitada"
     });
-  }
 });
 
 export default router;

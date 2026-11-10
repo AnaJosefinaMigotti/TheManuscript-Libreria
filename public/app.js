@@ -2,21 +2,59 @@ const contenedorLibros = document.querySelector("#libros");
 const contenedorGeneros = document.querySelector("#generos");
 const contenedorCarrito = document.querySelector("#productos-carrito");
 const totalCarrito = document.querySelector("#total-carrito");
-const selectorCliente = document.querySelector("#cliente");
+const formularioLogin = document.querySelector("#formulario-login");
+const campoEmail = document.querySelector("#email");
+const campoPassword = document.querySelector("#password");
+const mensajeLogin = document.querySelector("#mensaje-login");
 const botonIngresar = document.querySelector("#ingresar");
 const usuarioActivo = document.querySelector("#usuario-activo");
 const botonSalir = document.querySelector("#salir");
 const botonComprar = document.querySelector("#comprar");
 
 let libros = [];
-let clientes = [];
+
+function obtenerToken() {
+    return localStorage.getItem("token");
+}
+
+function limpiarSesion() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("id_cliente");
+    localStorage.removeItem("nombre_cliente");
+    localStorage.removeItem("carrito");
+}
 
 function verificarUsuario() {
-    if (usuarioActivo) {
-        const idCliente = localStorage.getItem("id_cliente");
+    if (usuarioActivo || contenedorLibros || contenedorCarrito) {
+        const token = obtenerToken();
         const nombreCliente = localStorage.getItem("nombre_cliente");
 
-        if (!idCliente || !nombreCliente) {
+        if (!token || !nombreCliente) {
+            limpiarSesion();
+            window.location.href = "index.html";
+            return false;
+        }
+
+        try {
+            const partes = token.split(".");
+
+            if (partes.length !== 3) {
+                throw new Error("Token inválido");
+            }
+
+            const contenido = JSON.parse(
+                atob(
+                    partes[1]
+                        .replace(/-/g, "+")
+                        .replace(/_/g, "/")
+                )
+            );
+
+            if (!contenido.exp || contenido.exp * 1000 <= Date.now()) {
+                throw new Error("Token vencido");
+            }
+        } catch (error) {
+            limpiarSesion();
             window.location.href = "index.html";
             return false;
         }
@@ -25,9 +63,91 @@ function verificarUsuario() {
     return true;
 }
 
+async function ingresar(evento) {
+    evento.preventDefault();
+
+    const email = campoEmail.value.trim();
+    const password = campoPassword.value;
+
+    mensajeLogin.textContent = "";
+
+    if (!email || !password) {
+        mensajeLogin.textContent = "Ingresá tu correo y contraseña.";
+        return;
+    }
+
+    botonIngresar.disabled = true;
+    botonIngresar.textContent = "Ingresando...";
+
+    try {
+        const respuesta = await fetch("/clientes/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!respuesta.ok) {
+            mensajeLogin.textContent =
+                resultado.mensaje || "No se pudo iniciar sesión.";
+            return;
+        }
+
+        if (!resultado.token || !resultado.cliente) {
+            mensajeLogin.textContent = "Respuesta de inicio de sesión inválida.";
+            return;
+        }
+
+        localStorage.removeItem("carrito");
+
+        localStorage.setItem("token", resultado.token);
+        localStorage.setItem(
+            "id_cliente",
+            String(resultado.cliente.id_cliente)
+        );
+        localStorage.setItem(
+            "nombre_cliente",
+            `${resultado.cliente.nombre} ${resultado.cliente.apellido}`
+        );
+
+        window.location.href = "catalogo.html";
+    } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+        mensajeLogin.textContent =
+            "No se pudo conectar con el servidor.";
+    } finally {
+        botonIngresar.disabled = false;
+        botonIngresar.textContent = "Ingresar";
+    }
+}
+
+function mostrarUsuario() {
+    const nombreCliente = localStorage.getItem("nombre_cliente");
+
+    if (usuarioActivo && nombreCliente) {
+        usuarioActivo.textContent = `Hola, ${nombreCliente}`;
+    }
+}
+
+function salir() {
+    limpiarSesion();
+    window.location.href = "index.html";
+}
+
 async function obtenerLibros() {
     try {
         const respuesta = await fetch("/libros");
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron obtener los libros");
+        }
+
         libros = await respuesta.json();
 
         if (contenedorLibros) {
@@ -41,6 +161,11 @@ async function obtenerLibros() {
 async function obtenerGeneros() {
     try {
         const respuesta = await fetch("/generos");
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron obtener los géneros");
+        }
+
         const generos = await respuesta.json();
 
         if (contenedorGeneros) {
@@ -49,77 +174,6 @@ async function obtenerGeneros() {
     } catch (error) {
         console.error("Error al obtener los géneros:", error);
     }
-}
-
-async function obtenerClientes() {
-    try {
-        const respuesta = await fetch("/clientes");
-        clientes = await respuesta.json();
-
-        mostrarClientes(clientes);
-    } catch (error) {
-        console.error("Error al obtener los clientes:", error);
-    }
-}
-
-function mostrarClientes(listaClientes) {
-    const clientesActivos = listaClientes.filter(
-        (cliente) => cliente.activo === true
-    );
-
-    clientesActivos.forEach((cliente) => {
-        const opcion = document.createElement("option");
-
-        opcion.value = cliente.id_cliente;
-        opcion.textContent = `${cliente.nombre} ${cliente.apellido}`;
-
-        selectorCliente.appendChild(opcion);
-    });
-}
-
-function ingresar() {
-    const idCliente = parseInt(selectorCliente.value);
-
-    if (!idCliente) {
-        alert("Seleccioná un cliente");
-        return;
-    }
-
-    const clienteSeleccionado = clientes.find(
-        (cliente) => cliente.id_cliente === idCliente
-    );
-
-    if (!clienteSeleccionado) {
-        return;
-    }
-
-    localStorage.setItem(
-        "id_cliente",
-        clienteSeleccionado.id_cliente
-    );
-
-    localStorage.setItem(
-        "nombre_cliente",
-        `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`
-    );
-
-    window.location.href = "catalogo.html";
-}
-
-function mostrarUsuario() {
-    const nombreCliente = localStorage.getItem("nombre_cliente");
-
-    if (usuarioActivo && nombreCliente) {
-        usuarioActivo.textContent = `Hola, ${nombreCliente}`;
-    }
-}
-
-function salir() {
-    localStorage.removeItem("id_cliente");
-    localStorage.removeItem("nombre_cliente");
-    localStorage.removeItem("carrito");
-
-    window.location.href = "index.html";
 }
 
 function mostrarLibros(listaLibros) {
@@ -184,7 +238,7 @@ function mostrarGeneros(generos) {
 }
 
 function agregarAlCarrito(libro) {
-    let carrito = JSON.parse(
+    const carrito = JSON.parse(
         localStorage.getItem("carrito")
     ) || [];
 
@@ -271,14 +325,14 @@ function mostrarCarrito() {
 
         contenedorCarrito.appendChild(articulo);
 
-        total = total + libro.precio;
+        total += libro.precio;
     });
 
     totalCarrito.textContent = `Total: $${total}`;
 }
 
 function eliminarDelCarrito(indice) {
-    let carrito = JSON.parse(
+    const carrito = JSON.parse(
         localStorage.getItem("carrito")
     ) || [];
 
@@ -293,16 +347,15 @@ function eliminarDelCarrito(indice) {
 }
 
 async function comprar() {
-    const idCliente = parseInt(
-        localStorage.getItem("id_cliente")
-    );
+    const token = obtenerToken();
 
     const carrito = JSON.parse(
         localStorage.getItem("carrito")
     ) || [];
 
-    if (!idCliente) {
-        alert("No hay un cliente identificado");
+    if (!token) {
+        alert("Debés iniciar sesión para comprar.");
+        limpiarSesion();
         window.location.href = "index.html";
         return;
     }
@@ -320,8 +373,7 @@ async function comprar() {
         );
 
         if (itemExistente) {
-            itemExistente.cantidad =
-                itemExistente.cantidad + 1;
+            itemExistente.cantidad += 1;
         } else {
             librosVenta.push({
                 id_libro: libro.id_libro,
@@ -330,37 +382,39 @@ async function comprar() {
         }
     });
 
-    const nuevaVenta = {
-        id_cliente: idCliente,
-        fecha: new Date().toISOString(),
-        pagada: true,
-        libros: librosVenta
-    };
-
     try {
         const respuesta = await fetch("/ventas", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify(nuevaVenta)
+            body: JSON.stringify({
+                libros: librosVenta
+            })
         });
 
         const resultado = await respuesta.json();
 
+        if (respuesta.status === 401 || respuesta.status === 403) {
+            alert(resultado.mensaje || "La sesión no es válida.");
+            limpiarSesion();
+            window.location.href = "index.html";
+            return;
+        }
+
         if (!respuesta.ok) {
-            alert(resultado.mensaje);
+            alert(resultado.mensaje || "No se pudo realizar la compra.");
             return;
         }
 
         localStorage.removeItem("carrito");
 
         mostrarCarrito();
-
         mostrarMensajeCompra(resultado);
-
     } catch (error) {
         console.error("Error al realizar la compra:", error);
+        alert("No se pudo conectar con el servidor.");
     }
 }
 
@@ -397,6 +451,9 @@ function mostrarMensajeCompra(venta) {
 const usuarioValido = verificarUsuario();
 
 if (usuarioValido) {
+    if (formularioLogin) {
+        formularioLogin.addEventListener("submit", ingresar);
+    }
 
     if (contenedorLibros) {
         obtenerLibros();
@@ -404,14 +461,6 @@ if (usuarioValido) {
 
     if (contenedorGeneros) {
         obtenerGeneros();
-    }
-
-    if (selectorCliente && botonIngresar) {
-        obtenerClientes();
-
-        botonIngresar.addEventListener("click", () => {
-            ingresar();
-        });
     }
 
     if (contenedorCarrito) {
@@ -423,14 +472,10 @@ if (usuarioValido) {
     }
 
     if (botonSalir) {
-        botonSalir.addEventListener("click", () => {
-            salir();
-        });
+        botonSalir.addEventListener("click", salir);
     }
 
     if (botonComprar) {
-        botonComprar.addEventListener("click", () => {
-            comprar();
-        });
+        botonComprar.addEventListener("click", comprar);
     }
 }
