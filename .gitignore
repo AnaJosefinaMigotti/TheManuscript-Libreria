@@ -1,5 +1,11 @@
-# Dependencias de Node.js
-node_modules/
 
-# Directorio de dependencias generadas por npm
-package-lock.json
+node_modules/
+.env
+.env.*
+!.env.example
+
+respaldo-ventas-*.json
+respaldo-stock-*.json
+sincronizar.js
+sincronizar-stock.js
+verificar-compra.js

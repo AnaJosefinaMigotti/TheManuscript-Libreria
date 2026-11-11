@@ -1,430 +1,150 @@
-# Actividad Librería
+# The Manuscript – Librería
 
 **Materia:** Aplicaciones Web II  
 **Estudiante:** Migotti, Ana Josefina  
-**N° de Documento:** 43.132.432
+**N.º de Documento:** 43.132.432
 
-Segunda entrega del trabajo práctico de Aplicaciones Web 2.
+## Descripción del proyecto
 
-En esta entrega se agregó Express al proyecto y se crearon las rutas necesarias para trabajar con los datos de clientes, libros, géneros y ventas.
+The Manuscript es una aplicación web de una librería desarrollada como trabajo práctico de la materia Aplicaciones Web II.
 
-Los datos se encuentran guardados en archivos JSON.
+El sistema permite consultar un catálogo de libros, filtrarlos por género, iniciar sesión y realizar compras.
 
----
+El proyecto se desarrolló progresivamente durante las distintas entregas de la materia, incorporando funcionalidades tanto en el frontend como en el backend.
 
-## Para ejecutar el proyecto
+En la cuarta entrega se implementó la autenticación mediante JWT, el cifrado de contraseñas con bcrypt y la utilización de MongoDB como base de datos NoSQL.
+
+## Tecnologías utilizadas
+
+- HTML
+- CSS
+- JavaScript
+- Node.js
+- Express
+- MongoDB
+- bcryptjs
+- JSON Web Token (JWT)
+
+## Instalación y ejecución
+
+### Requisitos
+
+- Node.js
+- MongoDB Community Server
+- Navegador web
+
+### Pasos para ejecutar el proyecto
 
 1. Descargar o clonar el repositorio.
-
 2. Abrir la carpeta del proyecto en Visual Studio Code.
-
-3. Ejecutar:
+3. Instalar las dependencias:
 
 ```bash
 npm install
 ```
 
-Si no funciona y aparece el mensaje:
-
-"No se puede cargar el archivo ...... porque la ejecución de scripts está deshabilitada en este sistema....."
-
-Ejecutar:
+Si Windows presenta restricciones para ejecutar scripts de PowerShell, utilizar:
 
 ```bash
 npm.cmd install
 ```
 
-4. Iniciar el servidor:
+4. Verificar que el servicio de MongoDB esté funcionando.
+5. Crear un archivo `.env` en la carpeta principal del proyecto:
+
+```dotenv
+MONGO_URI=mongodb://127.0.0.1:27017
+MONGO_DB=themanuscript
+JWT_SECRET=REEMPLAZAR_POR_UNA_CLAVE_SECRETA_SEGURA
+```
+
+6. Iniciar el servidor:
 
 ```bash
 node index.js
 ```
 
-Si todo funciona correctamente, en la terminal aparecerá:
+Si la conexión es correcta, aparecerá:
 
 ```text
+Conexión a MongoDB establecida correctamente
 Servidor corriendo en http://localhost:3000
 ```
 
-El servidor debe permanecer ejecutándose mientras se realizan las pruebas.
+7. Abrir la aplicación:
 
----
+http://localhost:3000/views/index.html
 
-# Rutas utilizadas
+**Importante:** para utilizar el sistema es necesario que la base de datos `themanuscript` tenga cargados los registros de clientes, libros y géneros. La instalación de dependencias no carga automáticamente estos datos.
 
-## Solicitudes GET
+## Credenciales de prueba
 
-Las solicitudes GET se utilizan para consultar los datos y pueden probarse directamente desde el navegador.
+Para ingresar al sistema y probar las funcionalidades de compra, utilizar:
 
-### Traer todos los registros
+**Correo electrónico:** martin.lopez@gmail.com  
+**Contraseña:** Manuscript2026!
 
-#### GET - Traer todos los clientes
+Estas credenciales corresponden a un usuario de prueba.
 
-```text
-http://localhost:3000/clientes
-```
+## Rutas disponibles
 
-#### GET - Traer todos los libros
+### Clientes
 
-```text
-http://localhost:3000/libros
-```
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/clientes/login` | Iniciar sesión |
+| GET | `/clientes` | Consultar el cliente autenticado |
+| GET | `/clientes/:id` | Consultar los datos del cliente autenticado por ID |
 
-#### GET - Traer todos los géneros
+### Libros
 
-```text
-http://localhost:3000/generos
-```
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/libros` | Consultar todos los libros |
+| GET | `/libros/:id` | Consultar un libro por ID |
 
-#### GET - Traer todas las ventas
+### Géneros
 
-```text
-http://localhost:3000/ventas
-```
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/generos` | Consultar todos los géneros |
+| GET | `/generos/:id` | Consultar un género por ID |
 
-### Consultar un registro por ID
+### Ventas
 
-#### GET - Consultar un cliente por ID
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/ventas` | Consultar las ventas del cliente autenticado |
+| GET | `/ventas/:id` | Consultar una venta propia por ID |
+| POST | `/ventas` | Registrar una compra |
 
-Ejemplo para consultar el cliente con ID 1:
+Las rutas de clientes y ventas requieren autenticación JWT, excepto `/clientes/login`.
 
-```text
-http://localhost:3000/clientes/1
-```
+Las operaciones de creación, modificación y eliminación de clientes, libros y géneros están deshabilitadas. Tampoco se permite modificar ni eliminar ventas.
 
-#### GET - Consultar un libro por ID
+## Pruebas de las rutas
 
-Ejemplo para consultar el libro con ID 1:
+Las rutas GET públicas pueden consultarse desde el navegador.
 
-```text
-http://localhost:3000/libros/1
-```
+Para probar las solicitudes POST y las rutas protegidas puede utilizarse Thunder Client, una extensión de Visual Studio Code.
 
-#### GET - Consultar un género por ID
-
-Ejemplo para consultar el género con ID 1:
-
-```text
-http://localhost:3000/generos/1
-```
-
-#### GET - Consultar una venta por ID
-
-Ejemplo para consultar la venta con ID 1:
+Las solicitudes que requieren autenticación deben incluir el encabezado:
 
 ```text
-http://localhost:3000/ventas/1
+Authorization: Bearer TOKEN_DEL_CLIENTE
 ```
 
----
+Para obtener el token se debe iniciar sesión mediante `/clientes/login`.
 
-## Para probar las solicitudes POST, PUT y DELETE
+## Base de datos
 
-Las solicitudes GET se pueden probar directamente desde el navegador.
+El proyecto utiliza MongoDB y la base de datos `themanuscript`.
 
-Para probar las solicitudes POST, PUT y DELETE vamos a utilizar Thunder Client, una extensión de Visual Studio Code que permite elegir el tipo de solicitud y enviar datos al servidor.
+Las colecciones principales son:
 
-### Instalar Thunder Client
+- `clientes`
+- `libros`
+- `generos`
+- `ventas`
 
-1. Abrir Visual Studio Code.
-
-2. Seleccionar `Extensiones` en la barra lateral izquierda.
-
-3. En el buscador escribir:
-
-```text
-Thunder Client
-```
-
-4. Seleccionar Thunder Client y presionar `Install`.
-
-5. Una vez instalado, abrir Thunder Client desde el nuevo ícono que aparece en la barra lateral de Visual Studio Code.
-
-6. Seleccionar `New Request`.
-
-### Realizar una solicitud
-
-1. Verificar que el servidor continúe ejecutándose. En la terminal debe aparecer:
-
-```text
-Servidor corriendo en http://localhost:3000
-```
-
-Si el servidor no está ejecutándose, abrir la terminal y ejecutar:
-
-```bash
-node index.js
-```
-
-2. En Thunder Client seleccionar el tipo de solicitud que se quiere realizar: `POST`, `PUT` o `DELETE`.
-
-3. Copiar y pegar la URL correspondiente en el campo de dirección.
-
-4. Para las solicitudes POST y PUT que necesiten enviar datos, seleccionar la pestaña `Body`.
-
-5. Seleccionar el formato `JSON`.
-
-6. Copiar y pegar los datos indicados en los ejemplos.
-
-7. Presionar `Send`.
-
-La respuesta del servidor aparecerá en Thunder Client.
-
----
-
-## Solicitudes POST
-
-Las solicitudes POST se utilizan para agregar nuevos registros.
-
-### POST - Crear un cliente
-
-URL:
-
-```text
-http://localhost:3000/clientes
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "nombre": "Ana",
-  "apellido": "Pérez",
-  "email": "ana.perez@gmail.com",
-  "telefono": "3516000000",
-  "activo": true
-}
-```
-
-Presionar `Send`.
-
-Si el registro se creó correctamente, el servidor devolverá el nuevo cliente con su ID.
-
-### POST - Crear un libro
-
-URL:
-
-```text
-http://localhost:3000/libros
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "titulo": "Don Quijote de la Mancha",
-  "autor": "Miguel de Cervantes",
-  "id_genero": 1,
-  "precio": 30000,
-  "stock": 5
-}
-```
-
-Presionar `Send`.
-
-Al agregar un libro se controla que el género indicado exista.
-
-### POST - Crear un género
-
-URL:
-
-```text
-http://localhost:3000/generos
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "nombre": "Poesía",
-  "activo": true
-}
-```
-
-Presionar `Send`.
-
-### POST - Registrar una venta
-
-URL:
-
-```text
-http://localhost:3000/ventas
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "id_cliente": 2,
-  "fecha": "2026-09-07",
-  "pagada": true,
-  "libros": [
-    {
-      "id_libro": 2,
-      "cantidad": 1
-    },
-    {
-      "id_libro": 5,
-      "cantidad": 2
-    }
-  ]
-}
-```
-
-Presionar `Send`.
-
-Al registrar una venta se controla que el cliente exista y esté activo, que los libros existan y que tengan stock suficiente.
-
-Cuando la venta se registra, se descuenta del stock la cantidad correspondiente de cada libro.
-
----
-
-## Solicitudes PUT
-
-Las solicitudes PUT se utilizan para modificar registros existentes.
-
-### PUT - Modificar un cliente
-
-Ejemplo para modificar el cliente con ID 1.
-
-URL:
-
-```text
-http://localhost:3000/clientes/1
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "telefono": "3516111111"
-}
-```
-
-Presionar `Send`.
-
-### PUT - Modificar un libro
-
-Ejemplo para modificar el libro con ID 1.
-
-URL:
-
-```text
-http://localhost:3000/libros/1
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "precio": 29000,
-  "stock": 10
-}
-```
-
-Presionar `Send`.
-
-### PUT - Modificar un género
-
-Ejemplo para modificar el género con ID 1.
-
-URL:
-
-```text
-http://localhost:3000/generos/1
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "nombre": "Novela",
-  "activo": true
-}
-```
-
-Presionar `Send`.
-
-### PUT - Modificar una venta
-
-Ejemplo para modificar el estado de pago de la venta con ID 1.
-
-URL:
-
-```text
-http://localhost:3000/ventas/1
-```
-
-En `Body` → `JSON` ingresar:
-
-```json
-{
-  "pagada": true
-}
-```
-
-Presionar `Send`.
-
----
-
-## Solicitudes DELETE
-
-Las solicitudes DELETE se utilizan para eliminar registros.
-
-Para probarlas, seleccionar el método `DELETE` en Thunder Client, copiar la URL correspondiente y presionar `Send`.
-
-No es necesario ingresar datos en `Body`.
-
-### DELETE - Eliminar un cliente
-
-Ejemplo para eliminar el cliente con ID 6:
-
-```text
-http://localhost:3000/clientes/6
-```
-
-El cliente solamente se puede eliminar si no tiene ventas asociadas.
-
-### DELETE - Eliminar un libro
-
-Ejemplo para eliminar el libro con ID 11:
-
-```text
-http://localhost:3000/libros/11
-```
-
-El libro solamente se puede eliminar si no aparece relacionado con una venta.
-
-### DELETE - Eliminar un género
-
-Ejemplo para eliminar el género con ID 5:
-
-```text
-http://localhost:3000/generos/5
-```
-
-El género solamente se puede eliminar si no tiene libros asociados.
-
-### DELETE - Eliminar una venta
-
-Ejemplo para eliminar la venta con ID 9:
-
-```text
-http://localhost:3000/ventas/9
-```
-
-Al eliminar una venta, las cantidades de los libros incluidos en esa venta se vuelven a sumar al stock.
-
----
-
-## Validaciones
-
-Para mantener la relación entre los datos se agregaron algunas validaciones:
-
-- No se puede eliminar un cliente si tiene ventas asociadas.
-- No se puede eliminar un libro si aparece en una venta.
-- No se puede eliminar un género si tiene libros asociados.
-- Para registrar una venta, el cliente debe existir y estar activo.
-- Los libros incluidos en una venta deben existir y tener stock suficiente.
-- Cuando se registra una venta se descuenta el stock correspondiente.
-- Si se elimina una venta, las cantidades de los libros vuelven a sumarse al stock.
+También se utiliza la colección `contadores` para generar los identificadores de las nuevas ventas.
