@@ -1,11 +1,12 @@
 
+# dependencias de Node.js
 node_modules/
-.env
-.env.*
-!.env.example
 
+# variables de entorno
+.env
+
+# respaldos de ventas generados durante la migración a MongoDB
 respaldo-ventas-*.json
+
+# respaldos del stock generados durante la sincronización
 respaldo-stock-*.json
-sincronizar.js
-sincronizar-stock.js
-verificar-compra.js
